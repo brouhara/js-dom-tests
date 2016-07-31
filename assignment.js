@@ -1,117 +1,317 @@
-// Define a function named updateTodoList that takes one argument.
-//   todoList (<ul> DOM element)
-//
-// The function must iterate over its list items (<li>) and do the following:
-//   * Remove items from the list if its text starts with "COMPLETED"
-//   * Applies the "important" CSS class if its text starts with "URGENT".
-//     TIP: Applying a CSS class means adding on top of what's already there.
-//   * Make no change otherwise.
 
+function updateTodoList(todoList) {
 
+    var li = todoList.getElementsByTagName('li');
+    var numItems = li.length - 1;
 
+    function findText(item, text, start) {
+        return getItemText(item).indexOf(text, start);
+    }
 
-// Define a function named createList that takes one argument.
-//   sites (object)
-//
-// The object has the following structure:
-//    {
-//      'TITLE': 'URL',
-//      'TITLE': 'URL',
-//      'TITLE': 'URL',
-//      ...
-//    }
-//
-// The function must return an <ul> element that contains <li> elements that
-// each contain an <a> element. For example, given:
-//    {
-//      'Google': 'https://www.google.com',
-//      'Facebook': 'https://www.facebook.com',
-//      'GitHub': 'https://github.com',
-//      'Galvanize': 'https://www.galvanize.com'
-//    }
-//
-// It returns the following:
-//    <ul>
-//      <li><a href="https://www.google.com">Google</a></li>
-//      <li><a href="https://www.facebook.com">Facebook</a></li>
-//      <li><a href="https://github.com">GitHub</a></li>
-//      <li><a href="https://www.galvanize.com">Galvanize</a></li>
-//    </ul>
+    function getItemText(item) {
+        return item.textContent;
+    }
 
+    function beginsWith(item, text) {
+        if (findText(item, text, 0) === 0) {
+            return true;
+        }
+        return false;
+    }
 
+    function isTaskCompleted(item) {
+        if (beginsWith(item, "COMPLETED") === true) {
+            return true;
+        }
 
+        return false;
+    }
 
-// Write a function named extractQuote that takes in one argument.
-//   article (<article> DOM element)
-//
-// Assume the article contains a paragraph. For example:
-//
-//    <article>
-//      <p>Neale Donald Walsch once said, "Life begins at the end of your
-//      comfort zone." This is really important.</p>
-//    </article>
-//
-// The function must check the paragraph for double quotes ("), extract it out,
-// add it to the text of a <blockquote> element, and then replace the paragraph
-// with that blockquote. For example, given the  above input, it must change the
-// article as following:
-//
-//    <article>
-//      <blockquote>"Life begins at the end of your comfort zone."</blockquote>
-//    </article>
-//
-// No changes should be made if there's no quote.
-//
-// TIP: Assume that if there's an opening double quote, there's a closing
-// double quote as well.
+    function isTaskUrgent(item) {
+        if (beginsWith(item, "URGENT") === true) {
+            return true;
+        }
 
+        return false;
+    }
 
+    for (var itemNumber = numItems; itemNumber >= 0; itemNumber--) {
 
+        if (isTaskCompleted(li[itemNumber])) {
+            todoList.removeChild(li[itemNumber]);
+        } else if (isTaskUrgent(li[itemNumber])) {
+            li[itemNumber].className += " important";
+        }
 
-// Define a function named createTable that takes one argument.
-//   data (array of arrays)
-//
-// The function must return a <table> DOM element that matches the structure of
-// the input data. The first element in the data array is the <thead> data, the
-// last element is the <tfoot> data, and the remaining elements form the <tbody>
-// data. For example, given the following input:
-//    [
-//      ['a', 'b', 'c'],
-//      ['d', 'e', 'f'],
-//      ['g', 'h', 'i'],
-//      ['j', 'k', 'l']
-//    ]
-//
-// the function returns
-//
-// <table>
-//   <thead>
-//     <tr>
-//       <th>a</th>
-//       <th>b</th>
-//       <th>c</th>
-//     </tr>
-//   </thead>
-//   <tbody>
-//     <tr>
-//       <td>d</td>
-//       <td>e</td>
-//       <td>f</td>
-//     </tr>
-//     <tr>
-//       <td>g</td>
-//       <td>h</td>
-//       <td>i</td>
-//     </tr>
-//   </tbody>
-//   <tfoot>
-//     <tr>
-//       <td>j</td>
-//       <td>k</td>
-//       <td>l</td>
-//     </tr>
-//   </tfoot>
-// </table>
-//
-// TIP: Assume that data array has at least three elements.
-// TIP: Assume that the elements of the data array are equal in length.
+    }
+}
+
+function createList(links) {
+    var list = document.createElement('UL');
+
+    function createLink(link) {
+        var ahref = document.createElement('A');
+        ahref.setAttribute('href', link.url);
+        ahref.textContent = link.title;
+
+        return ahref;
+    }
+
+    function createListItem(link) {
+        var li = document.createElement('LI');
+        var ahref = createLink(link);
+
+        li.appendChild(ahref);
+
+        return li;
+    }
+
+    function addSites(links) {
+
+        function Site(title, url) {
+            this.title = title,
+            this.url = url
+        };
+
+        for (var title in links) {
+            var site = new Site(title, links[title]);
+            var listItem = createListItem(site);
+
+            list.appendChild(listItem);
+        }
+
+    }
+
+    addSites(links);
+
+    return list;
+}
+
+function extractQuote(article) {
+    var p = article.firstChild;
+    var text = p.textContent;
+
+    function getStart(text) {
+        return text.search(/".*"/);
+    }
+
+    function getEnd(text) {
+        return text.lastIndexOf('\"');
+    }
+
+    function getQuote(text, x, length) {
+        return text.substr(x, length);
+    }
+
+    var start = getStart(text);
+    var end = getEnd(text);
+    var length = end - start;
+
+    if (start > 0) {
+        if (end > start) {
+            var blockQuote = document.createElement('blockquote');
+            blockQuote.textContent = getQuote(text, start, length + 1);
+            p.remove();
+            article.appendChild(blockQuote);
+        }
+    }
+}
+
+function createTable(data) {
+
+    function Table() {
+
+        var header = data.shift();
+        var footer = data.pop();
+        var body = data;
+        
+        var structure = {
+            name: 'table',
+
+            elements: {
+                header: ['thead', 'tr', 'th', header ],
+                body: ['tbody', 'tr', 'td', body ],
+                footer: ['tfoot', 'tr', 'td', footer ]
+            }
+        }
+
+        function Attributes(element) {
+            var _element = element;
+
+            this.text = _element.textContent;
+            this.setText = function (value) {
+                _element.textContent = value;
+                return this.text;
+            }
+
+        }
+
+        function Node(element) {
+            var node = element;
+
+            var _parent;
+            var _children = [];
+
+            function AppendTo(element) {
+                _parent = element.appendChild(node);
+                return _parent;
+            }
+
+            function AppendChild(element) {
+                element.AppendTo(node);
+                _children.push(element);
+
+                return element;
+            }
+
+            this.parent = _parent;
+            this.appendTo = AppendTo;
+
+            this.children = _children;
+            this.appendChild = AppendChild;
+        }
+
+        function Element(name) {
+            var _name = name;
+            console.log(name);
+
+            var _element = document.createElement(name);
+            
+            var _attributes = new Attributes(_element);
+            var _node = new Node(_element);
+
+            this.element = _element;
+            this.attributes = _attributes;
+            this.node = _node;
+
+            return this;
+        }
+
+        function create() {
+            var table = new Element( structure.name );
+
+            for( var element in structure.elements ) {
+                var section = structure.elements[element]
+                createSection( section, table );
+            }
+
+            return table;
+        }
+
+        function createSection( [ section, row, data, array ], parent) {
+            // var section = appendElement( parent, section );
+
+            appendElements( parent, [ section, row, data ], array );
+
+            // if( typeof array[0] !== 'object') {
+
+            //     var parent   = appendElement ( section, row);
+            //     var children = appendElements ( parent, data, array );
+
+            // } else {
+
+            //     for( var x = 0; x < array.length; x++) {
+
+            //         var parent   = appendElement ( section, row);
+            //         var children = appendElements ( parent, data, array[x] );
+
+            //     }
+
+            // }
+
+        }
+
+        function createElement( element ) {
+            return new Element( element );
+        }
+
+        function setElementText( element, value ) {
+            element.attributes.setText( value );
+        }
+
+        function appendElementTo( element, parent ) {
+            element.node.appendTo( parent.element );
+        }
+
+        function appendElementsFromArray( parent, element, values ) {
+            values.forEach( function(value) {
+                var newChild = createElement( element );
+                appendElementTo( parent, newChild);
+                setElementText( newChild, value );
+            });
+        }
+
+        function appendElement( parent, element, values ) {
+            console.log("Append Element: " + element);
+            console.log( typeof values === 'object' );
+
+            if( typeof values === 'object') {
+                console.log('Appending Values Array');
+                appendElementsFromArray( parent, element, values);
+            } else {
+                var element = createElement( element );
+                appendElementTo( element, parent );
+                return element;
+            }
+        }
+
+        // Table, {Section, Row, Data}, array
+        // Section, { Row, Data }, array
+        function appendElements( parent, elements, array ) {
+            console.log( 'Append Elements: ' + elements );
+            console.log( 'Elements: '  + elements.length);
+
+            // Table, Section
+            if( elements.length > 2) {
+                var element = elements.shift();
+                var newParent = appendElement( parent, element );
+
+                console.log('New Parent: ' + newParent.element );
+                console.log('New Elements: ' +  elements );
+
+                // Row, Data
+                if( elements.length === 2 ) {
+
+                    // data[ [1,2,3], [1,2,3] ]
+                    if( array[0] === 'object' ) {
+                        
+                        // value[1,2,3]
+                        array.forEach( function( value ) {
+                            var newChild = appendElement( newParent, element, value );
+                        });
+
+                    }
+                } else {
+                    appendElements( newParent, elements, array );
+                }
+
+            } else {
+                console.log('Append Children: ' + elements );
+                var newChild = appendElement( parent, elements[0], array );
+            }
+
+            // // Row
+            // array.forEach( function ( value ) {
+
+            //     if( typeof value !== 'object') {
+            //     } else {
+            //         console.log('Section: ' + newParent.node.name);
+            //         var newParent = appendElements( newParent, elements, value );
+            //     }
+            // });
+
+            return parent;
+        }
+
+        var table = create();
+
+        return table.element;
+    }
+
+    var table = new Table();
+
+    console.log(table);
+
+    return table;
+}
+
